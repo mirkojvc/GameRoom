@@ -11,6 +11,11 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+/*Route::get('/', function () {
+    return view('components.index');
+});*/
+
+Route::get('/', 'HomeController@index');
+
+Route::get('/ajax', 'HomeController@test');
+Route::get('/{page}', 'HomeController@ajax_pagination');
