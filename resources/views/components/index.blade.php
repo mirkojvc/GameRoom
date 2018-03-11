@@ -7,8 +7,11 @@
     <div id="content-inner">
       <div id = "content_main">
       @include('components.articleSingleCompact')
+      @if(Session::get('user') !== null)
+        @include('components.survey')
+      @endif
       </div>
-
+  </div>
   </div>
 @endsection
 
@@ -16,7 +19,7 @@
 <ul>
       
       @foreach($categories as $category)
-      <li><a href="category/{{$category->id}}">{{$category->name}}</a></li>
+      <li><a href="/category/{{$category->id}}">{{$category->name}}</a></li>
       @endforeach
     </ul>
 @endsection

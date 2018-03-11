@@ -4,14 +4,14 @@ namespace App\Models;
 use Illuminate\Support\Facades\DB;
 
 class PostCategory {
-    private $id;
-    private $category_name;
+    public $id;
+    public $name;
 
     private $table = 'PostCategory';
     public function createCategory() {
         $category = DB::table($this->table)
         ->insert([
-            'category_name' => $this->category_name,
+            'name' => $this->name,
         ])
         ;
     }
@@ -22,17 +22,22 @@ class PostCategory {
         return $categories;
     }
 
-    public function updateCategory() {
-        $category = DB::table($this->table)
-        ->select()
+    public function getCategory() {
+        $categories = DB::table($this->table)
         ->where('id', $this->id)
-        ;
+        ->first();
+        return $categories;
+    }
 
-        if(isset($this->category_name)) {
-            $category->category_name = $this->category_name;
-        }
-
-        $category->save();
+    public function updateCategory() {
+		$data = [
+			'name' => $this->name,
+		];
+		$rez = DB::table($this->table)
+		        ->where('id',$this->id)
+				->update($data)
+				;
+		return $rez;
     }
 
     public function deleteCategory() {

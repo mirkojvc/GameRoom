@@ -19,24 +19,45 @@
 </noscript>
 </head>
 <body class="left-sidebar">
+
+@if (session('login_error'))
+  <div style="color:red;">{{session('login_error')}}</div>
+@endif
+
+@if (session('error'))
+  <div style="color:red;">{{session('error')}}</div>
+@endif
+
+@isset($errors)
+  @if($errors->any())
+    @foreach($errors->all() as $error)
+      <div style="color:red;"> {{ $error }} </div>
+    @endforeach
+  @endif
+@endisset
 <div id="wrapper">
 @yield('content')
   <div id="sidebar">
     <div id="logo">
-      <h1 class="mobileUI-site-name">STRIPED</h1>
+    <a href = "/" style="text-decoration:none">
+      <h1 class="mobileUI-site-name">GameRoom</h1>
+    </a>
     </div>
     <nav id="nav" class="mobileUI-site-nav">
     @yield('menu')
 
     </nav>
     <section class="is-search is-first">
-      <form method="post" action="#">
+
+@if(Session::get('user') === null)
+      <form method="post" class = "user_form" action="{{route('userForm')}}">
+      {{ csrf_field() }}
         <ul class = "login_form">
         <li>
-        <input type="text" class="text" name="username" placeholder="username">
+        <input type="text" class="text user_username" name="username" placeholder="username">
         </li>
         <li>
-        <input type="password" class="text" name="password" placeholder="password">
+        <input type="password" class="text user_password" name="password" placeholder="password">
         </li>
         <li>
             <input type="submit"  value = "register" name="register_submit">
@@ -44,8 +65,20 @@
         <li>
             <input type="submit"  value = "login" name="login_submit">
         </li>
+        <li class = "user_form__error"></li>
         </ul>
       </form>
+@else 
+      <ul>
+        <li>Zdravo {{Session::get('user')[0]->username}}</li>
+        <li>
+          <form method="post" action= "{{route('logout')}}">
+          {{ csrf_field() }}
+            <input type="submit" value="Logout"/>
+          </form>
+        </li>
+      </ul>
+@endif
     </section>
     <section class="is-recent-posts">
 

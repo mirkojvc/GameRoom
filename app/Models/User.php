@@ -5,10 +5,10 @@ use Illuminate\Support\Facades\DB;
 
 class User {
 
-    private $id;
-    private $username;
-    private $password;
-    private $roleId;
+    public $id;
+    public $username;
+    public $password;
+    public $roleId;
 
     private $table = 'User';
     
@@ -20,6 +20,8 @@ class User {
             'password' => md5($this->password),
             'roleId'   => $this->roleId,
         ]);
+
+        return $query;
     }
 
     public function getUsers() {
@@ -31,10 +33,10 @@ class User {
 
     public function getUser(){
         $user = DB::table($this->table)
-        ->select()
         ->where('username', $this->username)
-        ->where('password', md5($this->password));
-
+        ->where('password', md5($this->password))
+        ->first()
+        ;
         return $user;
     }
 
