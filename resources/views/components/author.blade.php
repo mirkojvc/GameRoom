@@ -6,11 +6,9 @@
   <div id="content" class="mobileUI-main-content">
     <div id="content-inner">
       <div id = "content_main">
-      @include('components.articleSingleCompact')
-      @if(Session::get('user') !== null)
-      @endif
+        <img src="{{ asset('images/me.jpg') }}" width="300" />
+        <h1>Mirko Jovic 33/15 student Visoke ICT skole</h1>
       </div>
-        @include('components.survey')
   </div>
   </div>
 @endsection

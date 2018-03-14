@@ -712,3 +712,15 @@
 .login_form li {
 	margin-top:  10px ;
 }
+
+.survey_container {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	z-index: 2;
+	background-color: gray;
+	color: #fff;
+	border-radius: 1px;
+	padding: 50px;
+	background-image: url(images/bg1.png);
+}

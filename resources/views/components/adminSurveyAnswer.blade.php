@@ -33,7 +33,7 @@
                     <td> {{ $answer->answer_text }} </td>
                     <td> {{ $survey->name }} </td>
                     <td> <a href="{{ '/admin/surveys/'.$survey->id.'/answer/'.$answer->id }}">Izmeni</a> </td>
-                    <td> <a href="{{ 'answer/delete/'.$answer->id }}">Obrisi</a> </td>
+                    <td> <a href="{{ '/admin/surveys/'.$survey->id.'/answer/delete/'.$answer->id }}">Obrisi</a> </td>
                   </tr>
                 @endforeach
                 @endisset
@@ -48,5 +48,6 @@
       <li><a href="/admin/posts">Postovi</a></li>
       <li><a href="/admin/categories">Kategorije</a></li>
       <li><a href="/admin/surveys">Ankete</a></li>
+      <li><a href="/admin/gallery">Galerija</a></li>
     </ul>
 @endsection

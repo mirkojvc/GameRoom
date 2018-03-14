@@ -6,7 +6,8 @@ use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\Survey;
 use App\Models\SurveyAnswers;
-use App\Models\SurveyResult;
+use App\Models\SurveyResults;
+use App\Models\Gallery;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -20,17 +21,166 @@ class AdminController extends Controller
     public function __construct(){
 
     }
-    public function admin() {
+    public function admin(Request $request) {
+
+		if($request->session()->get('user') !== null) {
+			$user = $request->session()->get('user');
+			$user = $user[0]->username;
+		} else {
+			$user = $request->ip();
+		}
+		
+		\Log::info('Poseta administraciji strane:'.$user);
         return view('components.admin', $this->data);
 	}
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+		/* Gallery */
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 	
+	public function gallery($id = null, Request $request) {
+        $gallery      = new Gallery;
+        $image       = new Gallery();
+        if($id !== null) {
+            $image->id   = $id;
+            $this->data['image']       = $image->getGallery();
+        }
+        $this->data['gallery']      = $gallery->getAll();
+
+		if($request->session()->get('user') !== null) {
+			$user = $request->session()->get('user');
+			$user = $user[0]->username;
+		} else {
+			$user = $request->ip();
+		}
+		
+		\Log::info('Poseta aministraciji galerija od strane:'.$user);
+        return view('components.adminGallery',$this->data);
+    }
+
+    public function deleteGallery($id = null, Request $request) {
+        try{
+            $gallery = new Gallery();
+			$gallery->id = $id;
+			$image = $gallery->getGallery();
+			File::delete($image->url);
+			$gallery->deleteGallery();
+			
+			if($request->session()->get('user') !== null) {
+				$user = $request->session()->get('user');
+				$user = $user[0]->username;
+			} else {
+				$user = $request->ip();
+			}
+			
+			\Log::info('Obrisana slika od strane:'.$user);
+			return redirect()->back();
+        }   catch(\ErrorException $ex) { 
+                \Log::error('Problem sa unosom u bazu '.$ex->getMessage());
+                return redirect()->back()->with('error','Desila se greska..');
+        } 
+
+    }
+
+    public function createGallery(Request $request){    
+
+		$photo = $request->file('image');
+		$extension = $photo->getClientOriginalExtension();
+		$tmp_path = $photo->getPathName();
+		
+		$folder = 'images/';
+		$file_name = time().".".$extension;
+		$new_path = public_path($folder).$file_name;
+		try {
+
+			File::move($tmp_path, $new_path);
+
+			$gallery = new Gallery();
+			$gallery->url  = 'images/'.$file_name;
+			$gallery->createGallery();
+
+			if($request->session()->get('user') !== null) {
+				$user = $request->session()->get('user');
+				$user = $user[0]->username;
+			} else {
+				$user = $request->ip();
+			}
+
+			\Log::info('Kreirana slika u galeriji od strane:'.$user);
+			return redirect()->back()->with('success','Uspesno ste dodali post i sliku!');
+		}
+		catch(\Illuminate\Database\QueryException $ex){ // greske u upitu
+			\Log::error($ex->getMessage());
+			return redirect()->back()->with('error','Greska pri dodavanju posta u bazu!');
+		}
+		catch(\Symfony\Component\HttpFoundation\File\Exception\FileException $ex) { // greske sa fajlom
+			\Log::error('Problem sa fajlom!! '.$ex->getMessage());
+			return redirect()->back()->with('error','Greska pri dodavanju slike!');
+		}
+		catch(\ErrorException $ex) { 
+			\Log::error('Problem sa fajlom!! '.$ex->getMessage());
+			return redirect()->back()->with('error','Desila se greska..');
+		}
+    }
+
+    public function updateGallery($id, Request $request) {
+		$slika = $request->file('image');
+		$gallery               = new Gallery();
+		$gallery->id           = $id;
+		try{ 
+            if($slika !== null){ 
+                $gallery_update = $gallery->getGallery();
+                File::delete($gallery_update->url);
+
+                $tmp_putanja = $slika->getPathName();
+                $ime_fajla = time().'.'.$slika->getClientOriginalExtension();
+                $putanja = 'images/'.$ime_fajla;
+                $putanja_server = public_path($putanja);
+
+                File::move($tmp_putanja, $putanja_server);
+
+				$gallery->url = $putanja;
+				
+				$res = $gallery->updateGallery();
+				if($request->session()->get('user') !== null) {
+					$user = $request->session()->get('user');
+					$user = $user[0]->username;
+				} else {
+					$user = $request->ip();
+				}
+	
+				\Log::info('Izmenjen a galerija  :'.$gallery->id.' od strane:'.$user);
+				
+			
+			}
+
+
+			return redirect('/admin/gallery');
+        }
+		catch(\Illuminate\Database\QueryException $ex){ // greske u upitu
+			\Log::error($ex->getMessage());
+			return redirect()->back()->with('error','Greska pri dodavanju posta u bazu!');
+		}
+		catch(\Symfony\Component\HttpFoundation\File\Exception\FileException $ex) { // greske sa fajlom
+			\Log::error('Problem sa fajlom!! '.$ex->getMessage());
+			return redirect()->back()->with('error','Greska pri dodavanju slike!');
+		}
+		catch(\ErrorException $ex) { 
+			\Log::error('Problem sa fajlom!! '.$ex->getMessage());
+			return redirect()->back()->with('error','Desila se greska..');
+		}
+	}
+
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 		/* Surveys */
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////
-	public function surveyAnswer($id = null, $anId = null) {
+	public function surveyAnswer($id = null, $anId = null, Request $request) {
         $answers = new SurveyAnswers();
 		$answer   = new SurveyAnswers();
 		$survey   = new Survey();
@@ -41,11 +191,21 @@ class AdminController extends Controller
             $this->data['answer']   = $answer->getSurveyAnswer();
 		}
 		$answers->surveyId = $id;
-        $this->data['answers'] = $answers->getAll();
+		$this->data['answers'] = $answers->getAll();
+		
+
+		if($request->session()->get('user') !== null) {
+			$user = $request->session()->get('user');
+			$user = $user[0]->username;
+		} else {
+			$user = $request->ip();
+		}
+		
+		\Log::info('Poseta strani odgovora  ankete od strane:'.$user);
         return view('components.adminSurveyAnswer',$this->data);
 	}
 	
-	public function survey($id = null) {
+	public function survey($id = null, Request $request) {
         $surveys = new Survey();
         $survey   = new Survey();
         if($id !== null) {
@@ -54,15 +214,34 @@ class AdminController extends Controller
         }
         $this->data['surveys'] = $surveys->getAll();
 
+		if($request->session()->get('user') !== null) {
+			$user = $request->session()->get('user');
+			$user = $user[0]->username;
+		} else {
+			$user = $request->ip();
+		}
+		
+		\Log::info('Poseta  ankete od strane:'.$user);
         return view('components.adminSurveys',$this->data);
     }
 
 
-    public function deleteAnswer($id = null, $anId = null) {
+    public function deleteAnswer($id = null, $anId = null, Request $request) {
         try{
             $answer = new SurveyAnswers();
             $answer->id = $anId;
-            $answer->deleteSurveyAnswer();
+			$answer->deleteSurveyAnswer();
+			
+
+		if($request->session()->get('user') !== null) {
+			$user = $request->session()->get('user');
+			$user = $user[0]->username;
+		} else {
+			$user = $request->ip();
+		}
+		
+		\Log::info('Obrisan odgovor ankete '.$answer->id.' od strane:'.$user);
+
             return redirect()->back();
         }   catch(\ErrorException $ex) { 
                 \Log::error('Problem sa unosom u bazu '.$ex->getMessage());
@@ -71,11 +250,20 @@ class AdminController extends Controller
 
     }
 
-    public function deleteSurvey($id = null) {
+    public function deleteSurvey($id = null, Request $request) {
         try{
             $survey = new Survey();
             $survey->id = $id;
-            $survey->deleteSurvey();
+			$survey->deleteSurvey();
+			
+		if($request->session()->get('user') !== null) {
+			$user = $request->session()->get('user');
+			$user = $user[0]->username;
+		} else {
+			$user = $request->ip();
+		}
+		
+		\Log::info('Obrisana  anketa '.$survey->id.' od strane:'.$user);
             return redirect()->back();
         }   catch(\ErrorException $ex) { 
                 \Log::error('Problem sa unosom u bazu '.$ex->getMessage());
@@ -98,6 +286,14 @@ class AdminController extends Controller
 			$survey->surveyId           = $id;
 			$survey->createSurveyAnswer();
 
+			if($request->session()->get('user') !== null) {
+				$user = $request->session()->get('user');
+				$user = $user[0]->username;
+			} else {
+				$user = $request->ip();
+			}
+			
+			\Log::info('Kreiran odgovor za  ankete od strane:'.$user);
 			return redirect()->back();
 		}
 		catch(\Illuminate\Database\QueryException $ex){
@@ -123,6 +319,14 @@ class AdminController extends Controller
 			$survey->name        = $request->get('name');
 			$survey->createSurvey();
 
+			if($request->session()->get('user') !== null) {
+				$user = $request->session()->get('user');
+				$user = $user[0]->username;
+			} else {
+				$user = $request->ip();
+			}
+			
+			\Log::info('Kreirana anketa od strane:'.$user);
 			return redirect()->back();
 		}
 		catch(\Illuminate\Database\QueryException $ex){
@@ -141,7 +345,18 @@ class AdminController extends Controller
 		$survey->id      = $id;
 		$survey->name    = $name;
         try{ 
-            $res = $survey->updateSurvey();
+			$res = $survey->updateSurvey();
+			
+
+		if($request->session()->get('user') !== null) {
+			$user = $request->session()->get('user');
+			$user = $user[0]->username;
+		} else {
+			$user = $request->ip();
+		}
+		
+		\Log::info('Izmena ankete '.$survey->id.' od strane:'.$user);
+			
             return redirect('/admin/surveys');
         }
 		catch(\Symfony\Component\HttpFoundation\File\Exception\FileException $ex) {
@@ -160,7 +375,18 @@ class AdminController extends Controller
 		$survey->id      		= $anId;
 		$survey->answer_text    = $answer_text;
         try{ 
-            $res = $survey->updateSurveyAnswer();
+			$res = $survey->updateSurveyAnswer();
+			
+
+			if($request->session()->get('user') !== null) {
+				$user = $request->session()->get('user');
+				$user = $user[0]->username;
+			} else {
+				$user = $request->ip();
+			}
+			
+			\Log::info('Izmena odgovora  ankete :'.$survey->id.' od strane:'.$user);
+
             return redirect()->back();
         }
 		catch(\Symfony\Component\HttpFoundation\File\Exception\FileException $ex) {
@@ -172,6 +398,42 @@ class AdminController extends Controller
 			return redirect()->back()->with('error','Desila se greska..');
 		}
 	}	
+
+	public function surveyResults($id, Request $request) {
+		$survey = new Survey();
+		$survey->id = $id;
+		$this->data['survey'] = $survey->getSurvey();
+
+		$answers = new surveyAnswers();
+		$answers->surveyId = $id;
+		$answers = $answers->getAll();
+		$statistics = [];
+		$results = new SurveyResults();
+		foreach($answers as $answer) {
+			$results->surveyId = $id;
+			$results->answerId = $answer->id;
+			$result = count($results->getStatistics());
+			
+			$row = [
+				'answerId' => $answer->id,
+				'answer_text' => $answer->answer_text,
+				'result'      =>$result,
+			];
+
+			array_push($statistics, $row);
+		}
+		$this->data['statistics'] = $statistics;
+
+		if($request->session()->get('user') !== null) {
+			$user = $request->session()->get('user');
+			$user = $user[0]->username;
+		} else {
+			$user = $request->ip();
+		}
+		
+		\Log::info('Poseta rezultatima ankete od strane:'.$user);
+		return view('components.adminSurveyStatistics',$this->data);
+	}
 	
 
 
@@ -182,7 +444,7 @@ class AdminController extends Controller
 	////////////////////////////////////////////////////////////////////////////////////////////////////
     
 
-    public function categories($id = null) {
+    public function categories($id = null, Request $request) {
         $categories = new PostCategory();
         $category   = new PostCategory();
         if($id !== null) {
@@ -191,14 +453,31 @@ class AdminController extends Controller
         }
         $this->data['categories'] = $categories->getCategories();
 
+		if($request->session()->get('user') !== null) {
+			$user = $request->session()->get('user');
+			$user = $user[0]->username;
+		} else {
+			$user = $request->ip();
+		}
+		
+		\Log::info('Poseta strani kategorije od strane:'.$user);
         return view('components.adminCategory',$this->data);
     }
 
-    public function deleteCategory($id = null) {
+    public function deleteCategory($id = null, Request $request) {
         try{
             $category = new PostCategory();
             $category->id = $id;
-            $category->deleteCategory();
+			$category->deleteCategory();
+			
+			if($request->session()->get('user') !== null) {
+				$user = $request->session()->get('user');
+				$user = $user[0]->username;
+			} else {
+				$user = $request->ip();
+			}
+			
+			\Log::info('Obrisana kategorija '.$category->id.' od strane:'.$user);
             return redirect()->back();
         }   catch(\ErrorException $ex) { 
                 \Log::error('Problem sa unosom u bazu '.$ex->getMessage());
@@ -221,6 +500,14 @@ class AdminController extends Controller
 			$category->name        = $request->get('name');
 			$category->createCategory();
 
+			if($request->session()->get('user') !== null) {
+				$user = $request->session()->get('user');
+				$user = $user[0]->username;
+			} else {
+				$user = $request->ip();
+			}
+			
+			\Log::info('Kreirana kategorija od strane:'.$user);
 			return redirect()->back();
 		}
 		catch(\Illuminate\Database\QueryException $ex){
@@ -240,6 +527,14 @@ class AdminController extends Controller
 		$category->name    = $name;
         try{ 
             $res = $category->updateCategory();
+			if($request->session()->get('user') !== null) {
+				$user = $request->session()->get('user');
+				$user = $user[0]->username;
+			} else {
+				$user = $request->ip();
+			}
+			
+			\Log::info('Izmenjena kategorija '.$category->id.' od strane:'.$user);
             return redirect('/admin/categories');
         }
 		catch(\Symfony\Component\HttpFoundation\File\Exception\FileException $ex) {
@@ -257,7 +552,7 @@ class AdminController extends Controller
 		/* POSTS */
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////
-    public function posts($id = null) {
+    public function posts($id = null, Request $request) {
         $categories = new PostCategory();
         $posts      = new Post();
         $post       = new Post();
@@ -268,15 +563,34 @@ class AdminController extends Controller
         $this->data['categories'] = $categories->getCategories();
         $this->data['posts']      = $posts->getAll();
 
+		if($request->session()->get('user') !== null) {
+			$user = $request->session()->get('user');
+			$user = $user[0]->username;
+		} else {
+			$user = $request->ip();
+		}
+		
+		\Log::info('Poseta aministraciji od strane:'.$user);
         return view('components.adminPosts',$this->data);
     }
 
-    public function deletePost($id = null) {
+    public function deletePost($id = null, Request $request) {
         try{
             $post = new Post();
-            $post->id = $id;
-            $post->deletePost();
-            return redirect()->back();
+			$post->id = $id;
+			$image = $post->getPost();
+			File::delete($image->first_image);
+			$post->deletePost();
+			
+			if($request->session()->get('user') !== null) {
+				$user = $request->session()->get('user');
+				$user = $user[0]->username;
+			} else {
+				$user = $request->ip();
+			}
+			
+			\Log::info('Obrisan post od strane:'.$user);
+			return redirect()->back();
         }   catch(\ErrorException $ex) { 
                 \Log::error('Problem sa unosom u bazu '.$ex->getMessage());
                 return redirect()->back()->with('error','Desila se greska..');
@@ -319,6 +633,14 @@ class AdminController extends Controller
 			$post->first_image  = 'images/'.$file_name;
 			$post->createPost();
 
+			if($request->session()->get('user') !== null) {
+				$user = $request->session()->get('user');
+				$user = $user[0]->username;
+			} else {
+				$user = $request->ip();
+			}
+
+			\Log::info('Kreiran post od strane:'.$user);
 			return redirect()->back()->with('success','Uspesno ste dodali post i sliku!');
 		}
 		catch(\Illuminate\Database\QueryException $ex){ // greske u upitu
@@ -341,14 +663,13 @@ class AdminController extends Controller
 		$categoryId = $request->get('category');
 		
 		$slika = $request->file('image');
-
 		$post               = new Post();
 		$post->id           = $id;
 		$post->title        = $title;
 		$post->text         = $text;
 		$post->categoryId   = $categoryId;
         try{ 
-            if(!empty($slika)){ 
+            if($slika !== null){ 
                 $post_update = $post->getPost();
                 File::delete($post_update->first_image);
 
@@ -362,7 +683,16 @@ class AdminController extends Controller
                 $post->first_image = $putanja;
             }
 
-            $res = $post->updatePost();
+			$res = $post->updatePost();
+
+			if($request->session()->get('user') !== null) {
+				$user = $request->session()->get('user');
+				$user = $user[0]->username;
+			} else {
+				$user = $request->ip();
+			}
+
+			\Log::info('Izmenjen post :'.$post->id.' od strane:'.$user);
             return redirect('/admin/posts');
         }
 		catch(\Illuminate\Database\QueryException $ex){ // greske u upitu

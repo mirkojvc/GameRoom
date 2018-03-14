@@ -8,6 +8,8 @@
       "errors":     ".user_form__error",
       "username":   ".user_username",
       "password":    ".user_password",
+      "survey":     ".survey_answer__radio",
+      "survey_cont": ".survey_container",
     };
 
     var init = function () {
@@ -19,8 +21,15 @@
         var pagination = "pagination";
         var pag_elements = registerElements(pagination, true);
 
+        var survey = "survey";
+        var surv_el = registerElements(survey, true);
+
         for(var i = 0, l = pag_elements.length; i < l; i++ ) {
             pag_elements[i].addEventListener("click", paginationClicked);
+        }
+
+        for(var i = 0, l = surv_el.length; i < l; i++ ) {
+            surv_el[i].addEventListener("click", surveyClicked);
         }
 
         var form = registerElements("form", false);
@@ -73,8 +82,26 @@
         var element = event.currentTarget;
         var page = element.dataset.page;
         var url = page;
-        window.AppMainAjax(url, render);
+        window.AppMainAjax(url, render, "GET");
     };
+
+    var surveyClicked = function(event) {
+        event.preventDefault();
+        var element = event.currentTarget;
+        var id      = element.dataset.id;
+        var token = document.getElementsByTagName('input').item(name="_token").value;
+        var token = "_token="+token;
+
+
+        var survey = "survey_cont";
+        var surv_el = registerElements(survey, false);
+
+        var sur_id  = surv_el.dataset.id; 
+        var location = window.location.href;
+        var url     = "insertSurveyResult/"+id+"/"+sur_id;
+
+        window.AppMainAjax(url, hideSurvey, "POST", token);
+    }
 
     var render = function(data) {
         var element = "main";
@@ -82,6 +109,14 @@
         el.innerHTML = data;
         initListeners();
     };
+
+    var hideSurvey = function(data) {
+        var element = "survey_cont";
+        var el = registerElements(element, false);
+        el.innerHTML = data;
+        initListeners();
+
+    }
 
     document.addEventListener("DOMContentLoaded", init);
 

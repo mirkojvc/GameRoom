@@ -15,13 +15,16 @@
     return view('components.index');
 });*/
 
-Route::get('/', 'HomeController@index');
+Route::get('/', 'HomeController@index')->name('home');
 
 Route::get('/category/{category_id}'      , 'HomeController@category');
 Route::get('/category/{category_id}/pagination/{page}', 'HomeController@category_pagination')->where('page', '[0-9]+');;
 
 Route::get('/ajax', 'HomeController@test');
+
+Route::get('/author', 'HomeController@author');
 Route::get('/pagination/{page}', 'HomeController@ajax_pagination')->where('page', '[0-9]+');
+Route::post('insertSurveyResult/{id}/{survId}','HomeController@insertSurveyResult');
 
 
 Route::middleware(['CheckAdmin'])->group(function () { 
@@ -45,9 +48,16 @@ Route::middleware(['CheckAdmin'])->group(function () {
         Route::get('gallery', 'AdminController@gallery');
 
         Route::get('surveys/{id?}', 'AdminController@survey');
+        Route::get('surveys/{id}/results', 'AdminController@surveyResults');
         Route::get('survey/delete/{id}', 'AdminController@deleteSurvey');
         Route::post('survey/update/{id}', 'AdminController@updateSurvey');
         Route::post('survey/save', 'AdminController@createSurvey');
+
+
+        Route::get('gallery/{id?}', 'AdminController@gallery');
+        Route::get('gallery/delete/{id}', 'AdminController@deleteGallery');
+        Route::post('gallery/update/{id}', 'AdminController@updateGallery');
+        Route::post('gallery/save', 'AdminController@createGallery');
 
 
         Route::get('surveys/{id}/answer/{anId?}', 'AdminController@surveyAnswer');

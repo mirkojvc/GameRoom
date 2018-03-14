@@ -46,5 +46,6 @@
       <li><a href="/admin/posts">Postovi</a></li>
       <li><a href="/admin/categories">Kategorije</a></li>
       <li><a href="/admin/surveys">Ankete</a></li>
+      <li><a href="/admin/gallery">Galerija</a></li>
     </ul>
 @endsection

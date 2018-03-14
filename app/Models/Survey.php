@@ -37,12 +37,19 @@ class Survey {
     }
 
     public function getNotDone($userId) {
-        $survey_id =  DB::select(DB::raw('SELECT s.id FROM Survey s  LEFT  JOIN SurveyResults sr on s.id = sr.surveyId
-        WHERE sr.userId IS  NULL OR sr.userId NOT IN ('.$userId.') LIMIT 1'));
-        $survey_id = $survey_id[0]->id;
 
-        $survey = DB::table($this->table)
-        ->where('id', $survey_id)
+        //$survey_id =  DB::select(DB::raw('SELECT s.id FROM Survey s  LEFT  JOIN SurveyResults sr on s.id = sr.surveyId
+        //WHERE sr.userId IS  NULL OR sr.userId NOT IN ('.$userId.') LIMIT 1'));
+        $user_surveys = DB::table('SurveyResults')
+        ->select('surveyId')
+        ->where('userId', $userId)
+        ->get()
+        ;
+
+        $test = json_decode(json_encode($user_surveys), True);
+
+        $survey = DB::table('Survey')
+        ->whereNotIn('id', $test)
         ->first()
         ;
 

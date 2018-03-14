@@ -87,13 +87,6 @@
             error += "Text must be entered </br>";
         }
 
-        if(image.value === null) {
-            event.preventDefault();
-            error += "Image must be entered </br>";
-        } else if(image.value.length < 1) {
-            event.preventDefault();
-            error += "Image must be entered </br>";
-        }
 
         if(parseInt(category.value, 10) === 0) {
             event.preventDefault();

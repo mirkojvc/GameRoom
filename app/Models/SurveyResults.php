@@ -21,8 +21,18 @@ class SurveyResults {
             'ip_address'=> $this->ip_address,
         ];
         $res = DB::table($this->table)
-        ->insert(data)
+        ->insert($data)
         ;
+
+        return $res;
+    }
+
+    public function getStatistics() {
+
+        $res = DB::table($this->table)
+        ->where('surveyId', $this->surveyId)
+        ->where('answerId', $this->answerId)
+        ->get();
 
         return $res;
     }
@@ -33,6 +43,15 @@ class SurveyResults {
         ->get();
 
         return $res;
+    }
+
+    public function canVote() {
+        $res = DB::table($this->table)
+        ->where('surveyId', $this->surveyId)
+        ->where('userId', $this->userId)
+        ->first();
+
+        return $res === null?true :false;
     }
 
 

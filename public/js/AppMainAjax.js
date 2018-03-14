@@ -1,10 +1,12 @@
 /* eslint-disable */
 (function () {
-    var location = window.location.href;
-    var makeRequestRaw = function (data, callback) {
+    var location = baseUrl;
+    var makeRequestRaw = function (data, callback, method, token = null) {
         var response;
         var request = new XMLHttpRequest();
-        request.open("GET", location+'/'+data);
+        request.open(method, location+"/"+data);
+        request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        request.setRequestHeader("Content-type","application/x-www-form-urlencoded");
         request.onreadystatechange = function() {
             if (request.readyState === 4 && request.status === 200) {
                     response = request.responseText;
@@ -12,11 +14,11 @@
             }
         }
 
-        request.send();
+        request.send(token);
     };
 
-    var makeRequest = function(data, callback) {
-        makeRequestRaw(data, callback);
+    var makeRequest = function(data, callback, method, token = null) {
+        makeRequestRaw(data, callback, method, token);
     }
 
         window.AppMainAjax = makeRequest;
