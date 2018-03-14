@@ -78,7 +78,8 @@
     <section class="is-recent-posts">
 
       <ul>
-        <li><a href="author">Autor</a></li>
+        <li><a href="/gallery">Galerija</a></li>
+        <li><a href="/author">Autor</a></li>
         <li><a href="#">Dokumentacija</a></li>
       </ul>
     </section>

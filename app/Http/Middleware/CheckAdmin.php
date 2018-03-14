@@ -17,7 +17,7 @@ class CheckAdmin
     {
         if($request->session()->has('user')){
             $user = $request->session()->get('user')[0];
-            if($user->roleId === 1){
+            if(intval($user->roleId) === 1){
                 return $next($request);
             } else {
                 return redirect('/')->with('error','Nemate pravo pristupa ovoj stranici!');

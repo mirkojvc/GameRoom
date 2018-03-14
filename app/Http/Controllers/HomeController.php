@@ -8,6 +8,7 @@ use App\Models\PostCategory;
 use App\Models\Survey;
 use App\Models\SurveyAnswers;
 use App\Models\SurveyResults;
+use App\Models\Gallery;
 
 use Illuminate\Http\Request;
 use Validator;
@@ -56,6 +57,25 @@ class HomeController extends Controller
 		\Log::info('Poseta pocetnoj strani od  strane:'.$user);
 
         return view('components.index', $this->data);
+    }
+    
+    
+    /////////////////////////////////////////////////////////////////////
+    //////////////// Gallery ///////////////////////////////////////////
+        public function gallery(Request $request) {
+        $gallery = new Gallery();
+        $this->data['gallery'] = $gallery->getAll();
+
+        if($request->session()->get('user') !== null) {
+			$user = $request->session()->get('user');
+			$user = $user[0]->username;
+		} else {
+			$user = $request->ip();
+		}
+		
+		\Log::info('Poseta  strani galerije od  strane:'.$user);
+
+        return view('components.gallery', $this->data);
     }
 
     public function category($category_id = null, $page = null, Request $request){

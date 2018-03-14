@@ -2,8 +2,8 @@
 @foreach($posts as $post)
 <article class="is-post is-post-excerpt">
         <header>
-          <h2><a href="{{$post->id}}">{{$post->title}}</a></h2></header>
-        <a href="#"  style="text-align:center;" class=" image-full"><img src="{{$post->first_image}}" alt="" width="300px" height = ""></a>
+          <h2>{{$post->title}}</h2></header>
+        <a href="#"  style="text-align:center;" class=" image-full"><img src="{{asset($post->first_image)}}" alt="" width="300px" height = ""></a>
         <p> {{$post->text}}</p>
 </article>
 @endforeach
