@@ -24,6 +24,7 @@ Route::get('/ajax', 'HomeController@test');
 
 Route::get('/author', 'HomeController@author');
 Route::get('/gallery', 'HomeController@gallery');
+Route::get('/documentation', 'HomeController@getDownload');
 Route::get('/pagination/{page}', 'HomeController@ajax_pagination')->where('page', '[0-9]+');
 Route::post('insertSurveyResult/{id}/{survId}','HomeController@insertSurveyResult');
 

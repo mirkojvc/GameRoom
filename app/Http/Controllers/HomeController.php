@@ -253,4 +253,16 @@ class HomeController extends Controller
         $this->data['pages_no'] = ceil($posts->getCategoryPostNo($category_id)/$this->limit);
         return view('components.articleSingleCompact', $this->data);
     }
+
+    public function getDownload()
+    {
+        //PDF file is stored under project/public/download/info.pdf
+        $file= public_path(). "/download/MirkoJovic3315.pdf";
+    
+        $headers = [
+            'Content-Type' => 'application/pdf',
+         ];
+
+        return response()->download($file, 'MirkoJovic3315.pdf', $headers);
+    }
 }

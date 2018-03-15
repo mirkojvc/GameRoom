@@ -80,7 +80,7 @@
       <ul>
         <li><a href="/gallery">Galerija</a></li>
         <li><a href="/author">Autor</a></li>
-        <li><a href="#">Dokumentacija</a></li>
+        <li><a href="/documentation">Dokumentacija</a></li>
       </ul>
     </section>
     <div id="copyright">
